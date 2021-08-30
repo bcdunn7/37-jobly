@@ -28,7 +28,7 @@ console.log("Jobly Config:".green);
 console.log("SECRET_KEY:".yellow, SECRET_KEY);
 console.log("PORT:".yellow, PORT.toString());
 console.log("BCRYPT_WORK_FACTOR".yellow, BCRYPT_WORK_FACTOR);
-console.log("Database:".yellow, getDatabaseUri());
+console.log("Database:".yellow, (process.env.NODE_ENV === "test") ? "jobly_test": "jobly");
 console.log("---");
 
 module.exports = {
