@@ -1,7 +1,7 @@
 "use strict";
 
 const db = require("../db");
-const { BadRequestError, NotFoundError } = require("../expressError");
+const { BadRequestError, NotFoundError, ExpressError } = require("../expressError");
 const { sqlForPartialUpdate } = require("../helpers/sql");
 
 /** Related functions for companies. */
@@ -44,12 +44,47 @@ class Company {
     return company;
   }
 
-  /** Find all companies.
+  /** Find all companies. Optional WHERE parameters.
    *
-   * Returns [{ handle, name, description, numEmployees, logoUrl }, ...]
+   * @param {object} q [An optional query object for filtering parametrs. Optional keys: minEmployees, maxEmployees, nameLike]
+   * @returns [{ handle, name, description, numEmployees, logoUrl }, ...]
    * */
 
-  static async findAll() {
+  static async findAll(q = {}) {
+
+    // Gather query params
+    const {minEmployees, maxEmployees, nameLike} = q;
+
+    // if min/max employees included make sure min is not greater than max
+    if (minEmployees && maxEmployees && minEmployees > maxEmployees) throw new ExpressError("minEmployees cannot be greater than maxEmployees", 400)
+
+    // Initialize array of clauses for WHERE statement and the corresponding values
+    let clauses = [];
+    let values = [];
+
+    // if certain param, add to clause and value
+    if (minEmployees) {
+      values.push(minEmployees);
+      clauses.push(`num_employees >= $${values.length}`);
+    }
+
+    if (maxEmployees) {
+      values.push(maxEmployees);
+      clauses.push(`num_employees <= $${values.length}`);
+    }
+
+    if (nameLike) {
+      values.push(`%${nameLike}%`);
+      clauses.push(`name ILIKE $${values.length}`);
+    }
+
+    // write WHERE clause
+    let whereClause = clauses.join(' AND ');
+    // if any clauses, add "WHERE"
+    if (clauses.length > 0) {
+      whereClause = "WHERE " + whereClause;
+    }
+    
     const companiesRes = await db.query(
           `SELECT handle,
                   name,
@@ -57,7 +92,8 @@ class Company {
                   num_employees AS "numEmployees",
                   logo_url AS "logoUrl"
            FROM companies
-           ORDER BY name`);
+           ${whereClause}
+           ORDER BY name`, values);
     return companiesRes.rows;
   }
 

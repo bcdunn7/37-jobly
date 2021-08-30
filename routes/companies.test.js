@@ -96,6 +96,50 @@ describe("GET /companies", function () {
     });
   });
 
+  test("works with filters", async function () {
+    const resp = await request(app)
+      .get("/companies?maxEmployees=2&nameLike=c&minEmployees=2");
+    expect(resp.body).toEqual({
+      "companies": [
+        {
+          handle: "c2",
+          name: "C2",
+          description: "Desc2",
+          numEmployees: 2,
+          logoUrl: "http://c2.img",
+        }
+      ],
+    });
+  });
+
+  test("validates schema correctly, valid", async function () {
+    const resp = await request(app)
+      .get("/companies?nameLike=SMI&minEmployees=500&maxEmployees=999");
+
+    expect(resp.statusCode).toEqual(200);
+  });
+
+  test("validates schema correctly, invalid minEmployees", async function () {
+    const resp = await request(app)
+      .get("/companies?nameLike=SMI&minEmployees=string&maxEmployees=999");
+
+    expect(resp.statusCode).toEqual(400);
+  });
+
+  test("validates schema correctly, invalid maxEmployees", async function () {
+    const resp = await request(app)
+      .get("/companies?nameLike=SMI&minEmployees=500&maxEmployees=string");
+
+    expect(resp.statusCode).toEqual(400);
+  });
+
+  test("validates schema correctly, invalid nameLike", async function () {
+    const resp = await request(app)
+      .get("/companies?nameLike=");
+
+    expect(resp.statusCode).toEqual(400);
+  });
+
   test("fails: test next() handler", async function () {
     // there's no normal failure event which will cause this route to fail ---
     // thus making it hard to test that the error-handler works with it. This
