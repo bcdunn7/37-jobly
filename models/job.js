@@ -1,7 +1,7 @@
 "use strict";
 
 const db = require("../db");
-const { BadRequestError, NotFoundError, ExpressError } = require("../expressError");
+const { NotFoundError } = require("../expressError");
 const { sqlForPartialUpdate } = require("../helpers/sql");
 
 class Job {
@@ -17,7 +17,7 @@ class Job {
             `INSERT INTO jobs
             (title, salary, equity, company_handle)
             VALUES ($1, $2, $3, $4)
-            RETURNING title, salary, equity, company)_handle AS "companyHandle"`,
+            RETURNING title, salary, equity, company_handle AS "companyHandle"`,
             [
                 title, 
                 salary, 
@@ -40,17 +40,19 @@ class Job {
         // query params
         const {title, minSalary, hasEquity} = q;
 
+        // Initialize array of clauses for WHERE statement and the corresponding values
         let clauses = [];
         let values = [];
 
+        // if certain param, add to clause and value
         if (title) {
-            values.push(title);
+            values.push(`%${title}%`);
             clauses.push(`title ILIKE $${values.length}`);
         }
 
         if (minSalary) {
             values.push(minSalary);
-            clauses.push(`minSalary >= $${values.length}`);
+            clauses.push(`salary >= $${values.length}`);
         }
 
         if (hasEquity) {
@@ -61,17 +63,17 @@ class Job {
         let whereClause = clauses.join(' AND ');
         // if any clauses, add "WHERE"
         if (clauses.length > 0) {
-            whereClause = "WHERE" + whereClause;
+            whereClause = "WHERE " + whereClause;
         }
 
         const jobsRes = await db.query(
             `SELECT title,
                     salary,
-                    quity,
-                    company_handle AS "companyHandle
-            FROM jobs
-            ${whereClause}
-            ORDER BY title`, values);
+                    equity,
+                    company_handle AS "companyHandle"
+             FROM jobs
+             ${whereClause}
+             ORDER BY title`, values);
         
         return jobsRes.rows;
     }
@@ -153,4 +155,4 @@ class Job {
     }
 }
 
-module.export = Job;
+module.exports = Job;
