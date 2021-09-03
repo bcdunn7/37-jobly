@@ -48,6 +48,8 @@ class Company {
    *
    * @param {object} q [An optional query object for filtering parametrs. Optional keys: minEmployees, maxEmployees, nameLike]
    * @returns [{ handle, name, description, numEmployees, logoUrl }, ...]
+   * 
+   * Throws 400 ExpressError if minEmployees > maxEmployees
    * */
 
   static async findAll(q = {}) {
@@ -78,7 +80,7 @@ class Company {
       clauses.push(`name ILIKE $${values.length}`);
     }
 
-    // write WHERE clause
+    // combine clauses to write WHERE clause
     let whereClause = clauses.join(' AND ');
     // if any clauses, add "WHERE"
     if (clauses.length > 0) {
