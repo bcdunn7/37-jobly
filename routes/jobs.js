@@ -35,6 +35,9 @@ router.post("/", ensureIsAdmin, async function (req, res, next) {
         const job = await Job.create(req.body);
         return res.status(201).json({ job })
     } catch (err) {
+        if (err.code === '23503') {
+            return next(new BadRequestError("Company does not exist in database", 400))
+        }
         return next(err);
     }
 });
@@ -53,8 +56,10 @@ router.post("/", ensureIsAdmin, async function (req, res, next) {
 router.get("/", async function (req, res, next) {
     const q = req.query;
 
-    // convert to int (for validation)
+    // convert to int/boolean (for validation)
     if (q.minSalary !== undefined) q.minSalary = +q.minSalary;
+    if (q.hasEquity === 'true') q.hasEquity = true;
+    if (q.hasEquity === 'false') q.hasEquity = false;
 
     try {
         // validate query params
@@ -119,7 +124,7 @@ router.patch("/:title", ensureIsAdmin, async function (req, res,next) {
  * Authorization required: admin
  */
 
-router.delete("/:handle", async function (req, res, next) {
+router.delete("/:title", ensureIsAdmin, async function (req, res, next) {
     try {
         await Job.remove(req.params.title);
         return res.json({ deleted: req.params.title })
