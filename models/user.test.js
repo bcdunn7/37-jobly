@@ -13,6 +13,7 @@ const {
   commonAfterEach,
   commonAfterAll,
 } = require("./_testCommon");
+const { text } = require("body-parser");
 
 beforeAll(commonBeforeAll);
 beforeEach(commonBeforeEach);
@@ -223,6 +224,39 @@ describe("remove", function () {
     try {
       await User.remove("nope");
       fail();
+    } catch (err) {
+      expect(err instanceof NotFoundError).toBeTruthy();
+    }
+  });
+});
+
+/************************************** apply */
+
+describe("apply", function () {
+  test("works", async function () {
+    const resp = await db.query(`SELECT id FROM jobs WHERE title = 'j1'`);
+    const j1Id = resp.rows[0].id;
+
+    const application = await User.apply('u1', j1Id);
+    expect(application).toEqual({
+      username: 'u1',
+      job_id: j1Id
+    });
+  });
+
+  test("not found if no job", async function () {
+    try {
+      const resp = await User.apply('u1', 999);      
+    } catch (err) {
+      expect(err instanceof NotFoundError).toBeTruthy();
+    }
+  });
+
+  test("not found if no user", async function () {
+    const resp = await db.query(`SELECT id FROM jobs WHERE title = 'j1'`);
+    const j1Id = resp.rows[0].id;
+    try {
+      const resp = await User.apply('notAUser', j1Id);
     } catch (err) {
       expect(err instanceof NotFoundError).toBeTruthy();
     }

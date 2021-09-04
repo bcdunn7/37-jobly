@@ -126,6 +126,10 @@ describe("POST /users", function () {
   });
 });
 
+/************************************** POST /users/:username/jobs/:id */
+
+
+
 /************************************** GET /users */
 
 describe("GET /users", function () {

@@ -24,7 +24,7 @@ const router = express.Router();
  * This returns the newly created user and an authentication token for them:
  *  {user: { username, firstName, lastName, email, isAdmin }, token }
  *
- * Authorization required: login
+ * Authorization required: admin
  **/
 
 router.post("/", ensureIsAdmin, async function (req, res, next) {
@@ -43,6 +43,27 @@ router.post("/", ensureIsAdmin, async function (req, res, next) {
   }
 });
 
+
+/**POST /:username/jobs/:id { username, jobId }=> {username, jobId}
+ * 
+ * Creates an application for a user for a specific job
+ * 
+ * Returns {applied: jobId}
+ * 
+ * Authorization required: curr User or admin
+ */
+
+router.post("/:username/jobs/:id", ensureCurrUserOrAdmin, async function (req, res, next) {
+  try {
+    const {username, id} = query.params;
+    console.log('***********')
+    console.log('PARAMs', username, id)
+    const application = await User.apply(username, id);
+    return res.status(201).json({ applied: application.jobId })
+  } catch (err) {
+    return next(err);
+  }
+});
 
 /** GET / => { users: [ {username, firstName, lastName, email }, ... ] }
  *
@@ -65,7 +86,7 @@ router.get("/", ensureIsAdmin, async function (req, res, next) {
  *
  * Returns { username, firstName, lastName, isAdmin }
  *
- * Authorization required: login
+ * Authorization required: curr User or admin
  **/
 
 router.get("/:username", ensureCurrUserOrAdmin, async function (req, res, next) {
@@ -85,7 +106,7 @@ router.get("/:username", ensureCurrUserOrAdmin, async function (req, res, next) 
  *
  * Returns { username, firstName, lastName, email, isAdmin }
  *
- * Authorization required: login
+ * Authorization required: curr User or admin
  **/
 
 router.patch("/:username", ensureCurrUserOrAdmin, async function (req, res, next) {
@@ -106,7 +127,7 @@ router.patch("/:username", ensureCurrUserOrAdmin, async function (req, res, next
 
 /** DELETE /[username]  =>  { deleted: username }
  *
- * Authorization required: login
+ * Authorization required: curr User or admin
  **/
 
 router.delete("/:username", ensureCurrUserOrAdmin, async function (req, res, next) {
