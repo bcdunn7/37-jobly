@@ -5,7 +5,7 @@
 const jsonschema = require("jsonschema");
 
 const express = require("express");
-const { ensureLoggedIn, ensureIsAdmin, ensureCurrUserOrAdmin } = require("../middleware/auth");
+const { ensureIsAdmin, ensureCurrUserOrAdmin } = require("../middleware/auth");
 const { BadRequestError } = require("../expressError");
 const User = require("../models/user");
 const { createToken } = require("../helpers/tokens");
@@ -55,11 +55,9 @@ router.post("/", ensureIsAdmin, async function (req, res, next) {
 
 router.post("/:username/jobs/:id", ensureCurrUserOrAdmin, async function (req, res, next) {
   try {
-    const {username, id} = query.params;
-    console.log('***********')
-    console.log('PARAMs', username, id)
+    const {username, id} = req.params;
     const application = await User.apply(username, id);
-    return res.status(201).json({ applied: application.jobId })
+    return res.status(201).json({ applied: application.job_id })
   } catch (err) {
     return next(err);
   }

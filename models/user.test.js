@@ -12,6 +12,7 @@ const {
   commonBeforeEach,
   commonAfterEach,
   commonAfterAll,
+  testJobIds
 } = require("./_testCommon");
 const { text } = require("body-parser");
 
@@ -234,14 +235,14 @@ describe("remove", function () {
 
 describe("apply", function () {
   test("works", async function () {
-    const resp = await db.query(`SELECT id FROM jobs WHERE title = 'j1'`);
-    const j1Id = resp.rows[0].id;
-
-    const application = await User.apply('u1', j1Id);
+    const application = await User.apply('u1', testJobIds[0]);
     expect(application).toEqual({
       username: 'u1',
-      job_id: j1Id
+      job_id: testJobIds[0]
     });
+
+    const applications = await db.query(`SELECT * FROM applications`);
+    expect(applications.rows.length).toEqual(1);
   });
 
   test("not found if no job", async function () {
@@ -253,10 +254,8 @@ describe("apply", function () {
   });
 
   test("not found if no user", async function () {
-    const resp = await db.query(`SELECT id FROM jobs WHERE title = 'j1'`);
-    const j1Id = resp.rows[0].id;
     try {
-      const resp = await User.apply('notAUser', j1Id);
+      const resp = await User.apply('notAUser', testJobIds[0]);
     } catch (err) {
       expect(err instanceof NotFoundError).toBeTruthy();
     }

@@ -12,7 +12,8 @@ const {
   commonAfterEach,
   commonAfterAll,
   u1Token,
-  uAToken
+  uAToken,
+  testJobIds
 } = require("./_testCommon");
 
 beforeAll(commonBeforeAll);
@@ -128,7 +129,54 @@ describe("POST /users", function () {
 
 /************************************** POST /users/:username/jobs/:id */
 
+describe("POST /users/:username/jobs/:id", function () {
+  test("works for admin", async function () {
+    const resp = await request(app)
+      .post(`/users/u1/jobs/${testJobIds[0]}`)
+      .set("authorization", `Bearer ${uAToken}`);
+    // expect(resp.statusCode).toEqual(201);
+    expect(resp.body).toEqual({
+      applied: testJobIds[0]
+    });
+  });
 
+  test("works for curr user", async function () {
+    const resp = await request(app)
+      .post(`/users/u1/jobs/${testJobIds[0]}`)
+      .set("authorization", `Bearer ${u1Token}`);
+    expect(resp.statusCode).toEqual(201);
+    expect(resp.body).toEqual({
+      applied: testJobIds[0]
+    });
+  });
+
+  test("unauth for not curr user or admin", async function () {
+    const resp = await request(app)
+      .post(`/users/u2/jobs/${testJobIds[0]}`)
+      .set("authorization", `Bearer ${u1Token}`);
+    expect(resp.statusCode).toEqual(401);
+  });
+
+  test("unauth for anon", async function () {
+    const resp = await request(app)
+      .post(`/users/u2/jobs/${testJobIds[0]}`);
+    expect(resp.statusCode).toEqual(401);
+  });
+
+  test("not found if no user", async function () {
+    const resp = await request(app)
+      .post(`/users/notAUser/jobs/${testJobIds[0]}`)
+      .set("authorization", `Bearer ${uAToken}`);
+    expect(resp.statusCode).toEqual(404);
+  });
+
+  test("not found if no job", async function () {
+    const resp = await request(app)
+      .post(`/users/notAUser/jobs/999`)
+      .set("authorization", `Bearer ${uAToken}`);
+    expect(resp.statusCode).toEqual(404);
+  });
+});
 
 /************************************** GET /users */
 

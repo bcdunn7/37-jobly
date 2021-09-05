@@ -9,7 +9,7 @@ class Job {
      * 
      * data format: {title, salary(int), equity(nuemric), companyHandle}
      * 
-     * @returns { title, salary, equity, companyHandle}
+     * @returns { id, title, salary, equity, companyHandle}
      */
 
     static async create({title, salary, equity, companyHandle}) {
@@ -33,7 +33,7 @@ class Job {
     /**Find all jobs. Optional WHERE parameters.
      * 
      * @param {object} q [An optional query object for filtering parameters. Optional keys: title, minSalary, hasEquity]
-     * @returns [{title, salary, quity, companyHandle},...]
+     * @returns [{id, title, salary, quity, companyHandle},...]
      */
 
     static async findAll(q = {}) {
@@ -81,7 +81,7 @@ class Job {
 
     /**Given a job id, return data about job.
      * 
-     * @return {title, salary, equity, companyHandle}
+     * @return {id, title, salary, equity, companyHandle}
      * 
      * Throws NotFoundError if not found.
      */
@@ -111,7 +111,7 @@ class Job {
      * 
      * Data can include: {title, salary, equity}
      * 
-     * @return {title, salary, equity, companyHandle}
+     * @return {id, title, salary, equity, companyHandle}
      * 
      * Throws NotFoundError if not found.
      */

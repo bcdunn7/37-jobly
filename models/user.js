@@ -139,6 +139,17 @@ class User {
 
     if (!user) throw new NotFoundError(`No user: ${username}`);
 
+    const applicationsRes = await db.query(`
+          SELECT a.job_id
+          FROM applications
+          WHERE username = $1`,
+          [username]
+    );
+
+    const jobs = applicationsRes.rows[0];
+
+    user.jobs = jobs;
+
     return user;
   }
 
@@ -223,7 +234,7 @@ class User {
       WHERE id = $1`, [jobId]);
     if (!jobRes.rows[0]) throw new NotFoundError(`No such job: ${jobId}`);
 
-    // application
+    // create application
     let result = await db.query(
       `INSERT INTO applications (username, job_id)
       VALUES ($1, $2)
