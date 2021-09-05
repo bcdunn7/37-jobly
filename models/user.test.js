@@ -134,7 +134,7 @@ describe("findAll", function () {
 /************************************** get */
 
 describe("get", function () {
-  test("works", async function () {
+  test("works, no job applications", async function () {
     let user = await User.get("u1");
     expect(user).toEqual({
       username: "u1",
@@ -142,6 +142,20 @@ describe("get", function () {
       lastName: "U1L",
       email: "u1@email.com",
       isAdmin: false,
+    });
+  });
+
+  test("works, with job applications", async function () {
+    await User.apply('u1', testJobIds[0]);
+    await User.apply('u1', testJobIds[1]);
+    let user = await User.get("u1");
+    expect(user).toEqual({
+      username: "u1",
+      firstName: "U1F",
+      lastName: "U1L",
+      email: "u1@email.com",
+      isAdmin: false,
+      jobs: [testJobIds[0], testJobIds[1]]
     });
   });
 
