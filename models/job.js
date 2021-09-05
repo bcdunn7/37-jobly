@@ -17,7 +17,7 @@ class Job {
             `INSERT INTO jobs
             (title, salary, equity, company_handle)
             VALUES ($1, $2, $3, $4)
-            RETURNING title, salary, equity, company_handle AS "companyHandle"`,
+            RETURNING id, title, salary, equity, company_handle AS "companyHandle"`,
             [
                 title, 
                 salary, 
@@ -67,7 +67,8 @@ class Job {
         }
 
         const jobsRes = await db.query(
-            `SELECT title,
+            `SELECT id,
+                    title,
                     salary,
                     equity,
                     company_handle AS "companyHandle"
@@ -78,32 +79,33 @@ class Job {
         return jobsRes.rows;
     }
 
-    /**Given a job title, return data about job.
+    /**Given a job id, return data about job.
      * 
      * @return {title, salary, equity, companyHandle}
      * 
      * Throws NotFoundError if not found.
      */
 
-    static async get(title) {
+    static async get(id) {
         const jobRes = await db.query(
-            `SELECT title,
+            `SELECT id,
+                    title,
                     salary,
                     equity,
                     company_handle AS "companyHandle"
             FROM jobs
-            WHERE title = $1`,
-            [title]
+            WHERE id = $1`,
+            [id]
         ) 
 
         const job = jobRes.rows[0];
 
-        if (!job) throw new NotFoundError(`No Job ${title}`)
+        if (!job) throw new NotFoundError(`No Job with id: ${id}`)
 
         return job;
     }
 
-    /** Updata job data with 'data
+    /** Updata job (id) data with 'data'
      * 
      * This is a "partial update" --- it's fine if data doesn't contain all the fields; this only changes provided ones.
      * 
@@ -114,25 +116,26 @@ class Job {
      * Throws NotFoundError if not found.
      */
 
-    static async update(title, data) {
+    static async update(id, data) {
         const { setCols, values } = sqlForPartialUpdate(
             data,
             {
                 companyHandle: "company_handle"
             });
-        const titleVarInd = "$" + (values.length + 1);
+        const idVarInd = "$" + (values.length + 1);
 
         const querySql =   `UPDATE jobs
                             SET ${setCols}
-                            WHERE title = ${titleVarInd}
-                            RETURNING title,
+                            WHERE id = ${idVarInd}
+                            RETURNING id,
+                                    title,
                                     salary,
                                     equity,
                                     company_handle AS "companyHandle"`;
-        const result = await db.query(querySql, [...values, title]);
+        const result = await db.query(querySql, [...values, id]);
         const job = result.rows[0];
 
-        if (!job) throw new NotFoundError(`No Job ${title}`)
+        if (!job) throw new NotFoundError(`No Job with id: ${id}`)
 
         return job;
     }
@@ -142,16 +145,16 @@ class Job {
      * Throws NotFoundError if job not found.
      */
 
-    static async remove(title) {
+    static async remove(id) {
         const result = await db.query(`
             DELETE
             FROM jobs
-            WHERE title = $1
-            RETURNING title`, 
-            [title]);
+            WHERE id = $1
+            RETURNING id`, 
+            [id]);
         const job = result.rows[0];
 
-        if (!job) throw new NotFoundError(`No Job ${title}`);
+        if (!job) throw new NotFoundError(`No Job with id: ${id}`);
     }
 }
 

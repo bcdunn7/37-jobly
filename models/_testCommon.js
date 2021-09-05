@@ -1,7 +1,10 @@
 const bcrypt = require("bcrypt");
 
-const db = require("../db.js");
+const db = require("../db");
+const Job = require("./job")
 const { BCRYPT_WORK_FACTOR } = require("../config");
+
+let testJobIds = [];
 
 async function commonBeforeAll() {
   // noinspection SqlWithoutWhere
@@ -31,11 +34,24 @@ async function commonBeforeAll() {
         await bcrypt.hash("password2", BCRYPT_WORK_FACTOR),
       ]);
 
-      await db.query(`
-      INSERT INTO jobs(title, salary, equity, company_handle)
-      VALUES ('j1', 1, 0, 'c1'),
-             ('j2', 2, 0.5, 'c1'),
-             ('j3', 3, 0.01, 'c2')`);
+      testJobIds[0] = (await Job.create({
+        title: "j1",
+        salary: 1,
+        equity: 0,
+        companyHandle: "c1"
+      })).id;
+      testJobIds[1] = (await Job.create({
+        title: "j2",
+        salary: 2,
+        equity: 0.5,
+        companyHandle: "c1"
+      })).id;
+      testJobIds[2] = (await Job.create({
+        title: "j3",
+        salary: 3,
+        equity: 0.01,
+        companyHandle: "c2"
+      })).id;
 }
 
 async function commonBeforeEach() {
@@ -56,4 +72,5 @@ module.exports = {
   commonBeforeEach,
   commonAfterEach,
   commonAfterAll,
+  testJobIds
 };

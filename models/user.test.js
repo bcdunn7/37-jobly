@@ -5,8 +5,8 @@ const {
   BadRequestError,
   UnauthorizedError,
 } = require("../expressError");
-const db = require("../db.js");
-const User = require("./user.js");
+const db = require("../db");
+const User = require("./user");
 const {
   commonBeforeAll,
   commonBeforeEach,
